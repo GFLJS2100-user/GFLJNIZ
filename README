@@ -1,5 +1,45 @@
-ibnjs
----
+IBNIZ-js WebGL by uones, forked from IBNIZ-js by asiekierka
 
-A little project I made when I was bored and is kind of working.
--- asiekierka
+What is it?
+
+IBNIZ stands for Ideally Bare Numeric Impression giZmo.
+It is a virtual machine designed for extremely compact low-level audiovisual programs, 
+that use short one letter commands operating on stack and results get out as audio and visual.
+
+This implementation is a fork of asiekierka's ibnjs (IBNIZ-js) app that simulates IBNIZ vm in browser 
+(original idea and C implementation created by Viznut).
+You can check included examples and experiment with programs.
+
+Main goals of that project:
+To make it faster and available under browser.
+Checking that WebGl good for that kind tasks.
+It still have bugs - some programs dont workp properly
+
+
+Compatibility:
+Mozilla (Windows 7)
+Chrome (Windows 7)
+Chrome (Android 4.4) - no Audio
+
+Not working on:
+IE 11 (Windows 7)
+Samsung H6400 Smart TV browser
+Android 4.4 Browser - no WebGL
+
+List of more important changes:
+- Made it faster, faster, faster ...
+- Moved to WebGL rendering with YUV shader, rendering optimizations
+- Dropped eval opcodes optimization to more compact raw functions array
+- Fixed some Instruction Pointer operations issues
+- Slightly fixed audio for tested browsers
+- audio pipeline optimizations
+- heavy code, opcodes, and other optimizations
+- added Fullscreen mode
+- Slightly modified UI
+- URL c parameter for passing IBNIZ code in URLs.
+
+Check also:
+https://github.com/asiekierka/ibnjs
+https://github.com/viznut/IBNIZ
+http://countercomplex.blogspot.com/2011/12/ibniz-hardcore-audiovisual-virtual.html
+

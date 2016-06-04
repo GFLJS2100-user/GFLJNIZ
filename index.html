@@ -1,0 +1,1751 @@
+<!--
+	IBNIZ-js WebGL
+	Main app file
+-->
+<html>
+<head>
+<meta charset="UTF-8">
+<title>IBNIZ-js WebGL</title>
+<script type="text/javascript" src="webgl-utils.js"></script>
+<script type="text/javascript" src="webgl-pixel-buff.js"></script>
+<style>
+/*
+mixed prefixed full-screen selectors dont work on Mozilla
+*/
+
+html:-webkit-full-screen canvas#ibnizwebgl
+{
+  width: 100vmin;
+  height: 100vmin;
+}
+
+html:-moz-full-screen canvas#ibnizwebgl
+{
+  width: 100vmin;
+  height: 100vmin;
+}
+
+html:-ms-fullscreen canvas#ibnizwebgl,
+html:fullscreen canvas#ibnizwebgl
+{
+  width: 100vmin;
+  height: 100vmin;
+}
+</style>
+</head>
+<body onload="init()">
+<canvas id="ibniz" width="256" height="256">
+Why u no canvas
+</canvas>
+<canvas id="ibnizwebgl" width="256" height="256">
+Why u no canvas
+</canvas><br>
+<form>
+	<span id="fps"><b>FPS:</b> [loading...]</span>
+	<input type="checkbox" id="pause">Pause <input type="checkbox" id="useAudio">Audio 
+	<input type="button" id="fullscreenToggle" value="Fullscreen"><br>
+
+	<textarea id="code" style="width: 256px" cols="80" rows="10" placeholder="IBNIZ code editor"></textarea><br>
+	<select id="example_apps">
+			<option value=""><b>Load example:</b></option>
+			<option value="^x7r+Md8r&">Munching squares</option>
+			<option value="sv5rvs--">Plasma</option>
+			<option value="v8rsdv*vv*^">XOR texture zoomer</option>
+			<option value="8rw10r%w18r%">FreeFull - opening gate</option>
+			<option value="sxsaxAr+waxBr+^">FreeFull - spinny</option>
+			<option value="axp wvvx3r40/&^^ wd*xd*+qq1x/sx8r++ 30FF|">FreeFull - rose</option>
+			<option value="8rw10raw8r+w18r^">FreeFull - xorwiggle</option>
+			<option value="v8rsdv*vv*^wpp8r-">Munching zoomer</option>
+			<option value="ax8r+3lwd*xd*+q1x/x5r+^">Texture tunnel</option>
+			<option value="v8rds4X3)Lx~2Xv*vv*+i!L1@2@^">Rotozoomer</option>
+			<option value="sa*">bubsy - looks funny after a while</option>
+			<option value="d4rr">asiekierka - 4-char demo</option>
+			<option value="wpp2rr+d*+M8rd11rx*">asiekierka - mindrape01</option>
+			<option value="w8r-sqwqd*&w1~&+">asiekierka - glass</option>
+			<option value="6{^^ddd***1%}5{v8rsdv*vv*^wpp8r-}4{v8rdsx.6+s4X3)Lx~2Xv*vv*+i!L1@2@^}3{ax8r+3lwd*xd*+q1x/x6r+^}2)6r3&3+V55A9^Md6r|5*wdAr&+">viznut - ibnizdemo.ib</option>
+			<option value="axCr3ls3r+43lwd*xd*+q1x/x7r+^1%w^x20r8l+^M3*w5r&w5*w9r&w2*w6r&||">FreeFull - christmas demo</option>
+	</select>
+	<div id="advancedOptions">
+		<div id="rendererSwitches">
+		<input type="checkbox" id="renderCanvas" >Canvas render <input type="checkbox" id="renderWebgl" checked="checked">Webgl render  
+		</div>
+		<input type="checkbox" id="recalcAudio" checked="checked">More accurate audio (slightly slower)<br>
+		<input type="checkbox" id="simpleGetPut" checked="checked">Simple memory access
+	</div>
+	<div id="title"><b>IBNIZ-js webgl 0.C</b> by uone (	<a href="http://pelulamu.net/ibniz/">What is it?</a>
+)</div>
+	<div id="credits">
+	Fork of <a href="https://github.com/asiekierka/ibnjs">ibnjs</a>
+	by <a href="mailto:asiekierka@gmail.com">asiekierka</a>.
+	Original <a href="https://github.com/viznut/IBNIZ">IBNIZ</a> idea by Viznut.
+	</div>
+
+</form>
+<div id="dybug"></div>
+
+<br>
+</div>
+
+<br>
+<script type="text/javascript">
+"use strict"
+
+/* This program is free software. It comes without any warranty, to
+ * the extent permitted by applicable law. You can redistribute it
+ * and/or modify it under the terms of the Do What The Fuck You Want
+ * To Public License, Version 2, as published by Sam Hocevar. See
+ * http://sam.zoy.org/wtfpl/COPYING for more details. */
+Array.prototype.clear = function(){
+	this.length=0;
+}
+Array.prototype.exchange0 = function(){
+	if(this.length<2) return -1;
+	var temp = this[this.length-1];
+	this[this.length-1]=this[this.length-2];
+	this[this.length-2]=temp;
+}
+Array.prototype.exchange = function(){
+	if(this.length<2) return -1;
+	var l1 = this.length-1;
+	var temp = this[l1];
+	this[l1]=this[l1-1];
+	this[l1-1]=temp;
+}
+Array.prototype.trirot_o = function(){
+	if(this.length<3) return -1;
+	var temp = this[this.length-1];
+	this[this.length-1]=this[this.length-3];
+	this[this.length-3]=this[this.length-2];
+	this[this.length-2]=temp;
+}
+Array.prototype.trirot = function(){
+	var l = this.length;
+	if(l<3) return -1;
+	var temp = this[--l];
+	this[l]=this[l-=2];
+	this[l]=this[++l];
+	this[l]=temp;
+}
+Array.prototype.trirot2 = function(){
+	if(this.length<3) return -1;
+	var temp = this[this.length-2];
+	this[this.length-2]=this[this.length-3];
+	this[this.length-3]=this[this.length-1];
+	this[this.length-1]=temp;
+}
+Array.prototype.get = function(addr) {
+	return this[addr];
+}
+Array.prototype.gettop = function(addr) {
+	return this[this.length-1+addr];
+}
+	
+Array.prototype.put = function(addr,v) {
+	this[addr]=v|0;
+}
+Array.prototype.puttop = function(addr,v) {
+	this[this.length-1+addr]=v|0;
+}
+Array.prototype.dup = function(){
+	this.push(this[this.length-1]);
+}
+Array.prototype.dpush_0 = function(v){
+	this.push(v|0);
+}
+Array.prototype.dpush = function(v){
+	this[this.length] = v|0;
+}
+Array.prototype.dpop = function(){
+	//native  pop is faster
+	/*
+	var l1 = this.length-1;
+	var r= this[l1];
+	this.length=l1;
+	return r;
+	*/
+	return this.pop();
+}
+Array.prototype.dpush3 = function(d1,d2,d3){
+	this[this.length] = d1|0;
+	this[this.length] = d2|0;
+	this[this.length] = d3|0;
+}
+Array.prototype.reset = function(){
+	if(this.length!==0)this.length=0;
+}
+Array.prototype.plus = function(){
+	//tried: this[this.length-2]=this[--this.length]+this[this.length-1];
+	var l2=this.length-2;
+	this[l2]=(this[l2]+this.pop())|0;
+}
+
+Array.prototype.shltop = function(a){
+	var steps = (a>>16)&63;
+	var topi = this.length-1;
+	if(steps<32){
+		this[topi] = this[topi]<<steps;
+	}else{
+		this[topi] = this[topi]>>(steps-32);
+	}
+}
+Array.prototype.rortop = function(a){
+	var steps = (a>>16)&31;
+	var topi = this.length-1;
+	this[topi] = ((this[topi]>>>steps)|(this[topi]<<(32-steps)));
+}
+
+
+	
+
+
+function Parser(simpleGetPut,useAudio)
+{
+	this.code = "";
+	this.parsedCode = new Array();
+	this.ip = 0;
+	this.t = 0;
+	this.x = 0;
+	this.y = 0;
+	this.xy = 0;
+	this.mode = 0;
+	this.terminate = 0;
+	this.stackmode = 0;
+	this.videoout = 0;
+	this.audioout = 0;
+	this.stacka = new Array();
+	//this.stacka = new FastStack();
+	//this.stacka = Object.create(FastStackArray);
+	var stacka = this.stacka;
+	
+	this.rstacka = new Array();
+	this.mem = new Array(1048576);
+	// 0xC8000-0xCFFFF - return stacks
+	// 0xD0000-0xFFFFF - stacks
+	this.shl = function(a,b){
+		var steps = (a>>16)&63;
+		return steps<32 ? b<<steps : b>>(steps-32);
+	}
+	this.rol = function(a,b){
+		var steps = (a>>16)&31;
+		return ((b<<steps)|(b>>>(32-steps)));
+	}
+	this.ror = function(a,b){
+		var steps = (a>>16)&31;
+		return ((b>>>steps)|(b<<(32-steps)));
+	}
+	this.config = function(simpleGetPut,useAudio,recalcAudio)
+	{
+		this.useAudio=useAudio;
+		this.recalcAudio=recalcAudio;
+		if(simpleGetPut)
+		{
+			this.get = function(addr) { return this.mem[addr]; }
+			this.put = function(addr,val) { this.mem[addr]=val; }
+		}
+		else
+		{
+			this.get = function(addr,val){
+				switch(addr>>15)
+				{
+					case 0:
+					case 1:
+					case 2:
+					case 3:
+					case 4:
+					case 5:
+					case 6:
+					case 7:
+					case 8:
+					case 9:
+					case 10:
+					case 11:
+					case 12:
+					case 13:
+					case 14:
+					case 15:
+					case 16:
+					case 17:
+					case 18:
+					case 19:
+					case 20:
+					case 21:
+					case 22:
+					case 23:
+					case 24:
+						return this.mem[addr];
+						break;
+					case 25:
+						return this.rstacka[addr&0x3FFF];
+						break;
+					case 26:
+					case 27:
+						//return this.stacka[addr&0xFFFF];
+						return this.stacka.get(addr&0xFFFF);
+						break;
+					case 28:
+					case 29:
+					case 30:
+					case 31:
+						//return this.stacka[addr&0x1FFFF];
+						return this.stacka.get(addr&0x1FFFF);
+						break;
+				}
+			}
+			this.put = function(addr,val){
+				switch(addr>>15)
+				{
+					case 0:
+					case 1:
+					case 2:
+					case 3:
+					case 4:
+					case 5:
+					case 6:
+					case 7:
+					case 8:
+					case 9:
+					case 10:
+					case 11:
+					case 12:
+					case 13:
+					case 14:
+					case 15:
+					case 16:
+					case 17:
+					case 18:
+					case 19:
+					case 20:
+					case 21:
+					case 22:
+					case 23:
+					case 24:
+						this.mem[addr] = val;
+						break;
+					case 25:
+						this.rstacka.put(addr&0x3FFF,val);
+						break;
+					case 26:
+					case 27:
+						//this.stacka.put(addr&0xFFFF,val);
+						this.stacka.put(addr&0xFFFF,val);
+						break;
+					case 28:
+					case 29:
+					case 30:
+					case 31:
+						this.stacka.put(addr&0x1FFFF,val);
+						break;
+				}
+			}
+		}
+	}
+	this.config(simpleGetPut,useAudio);
+	this.load = function(c)
+	{
+		console.log("NEW CODE LOADED"+"\n"+c);
+		this.code=c;
+		this.parsedCode = new Array();
+		//console.log("pc",this.parsedCode);
+		this.compile();
+		this.configureStackmode();
+	}
+	this.rol16 = function(b){
+		return ((b<<16)|(b>>>16));
+	}
+	this.compiledpm = function(x,y){}
+	//this.pm0 = function() { this.stacka.push(this.t<<16,0,0); };
+	this.pm0 = function() { this.stacka.dpush3(this.t<<16,0,0); };
+	this.pushmedia = function(x,y)
+	{
+		//if(this.mode==0) this.compiledpm(x,y);
+		//y is taken from tyc cache
+		if(this.mode==0) this.compiledpm(x);
+		//else this.stacka.push(this.t<<16 | (y<<8) | x);
+		//else this.stacka.dpush(this.t<<16 | (y<<8) | x);
+		else this.stacka.dpush(last_pm1_yc | last_pm1_yl8c | x);
+	}
+	this.pmaudio = function(x,y)
+	{
+		//this.stacka.push(this.t*65536 + (y<<8) + x);
+		this.stacka.dpush(this.t*65536 + (y<<8) + x);
+	}
+
+	//calc x,y precalculated tables = optimizations
+	var pa_pm_bl9 = new Int32Array(256);
+	var pa_pm_bl8 = new Uint16Array(256);
+	function init_pa_pm_bl9(){
+		for(var x=0;x<256;x++){
+			pa_pm_bl9[x] = (x<<9)-65536;
+			pa_pm_bl8[x] = x<<8;
+		}
+	}
+	init_pa_pm_bl9();
+
+	var last_pm_ty;
+	var last_pm2_tyc;
+	var last_pm1_tc;
+	var last_pm1_yc;
+	var last_pm1_yl8c;
+	
+	function compiledpm_1(x) {
+		//this.stacka.push(this.t<<16, (y<<9)-65536, (x<<9)-65536);
+		//stacka.push(last_pm1_tc, last_pm1_yc, pa_pm_bl9[x]);
+		//stacka.push(last_pm1_tc, last_pm1_yc, (x<<9)-65536);
+		stacka.dpush3(last_pm1_tc, last_pm1_yc, pa_pm_bl9[x]);
+	};
+
+	function compiledpm_2(x) {
+		//this.stacka.push(this.t<<16 | (y<<8));
+		//this.stacka.push(cache_pm2(this.t,y) | x); 
+		//stacka.push(cache_pm2(this.t,y) | x);
+		//stacka.push(last_pm2_tyc | x);
+		stacka.dpush(last_pm2_tyc | x);
+	};
+
+		
+	this.compilepushmedia = function()
+	{
+				
+		switch(this.stackmode)
+		{
+			case 0:
+				this.compiledpm = compiledpm_1;
+				break;
+			case 1:
+				this.compiledpm = compiledpm_2;
+				break;
+		}
+	}
+	this.run = function(x,y)
+	{
+		// reset the machine
+		this.mode = 0;
+		this.terminate = 0;
+		this.ip = 0;
+		//if(this.stacka.length!==0)this.stacka.length=0;
+		stacka.reset();
+		
+		// push media context
+		//this.compiledpm(x,y);
+		//y is taken from tyc cache
+		this.compiledpm(x);
+		// loop
+		this.mediaSwitch=true;
+		this.exec(x,y);
+		this.runAudio(x,y);
+	}
+	this.runAudio = function (x,y){
+		var bUseAudio = (this.useFFAudio || this.useChromeAudio) && this.useAudio;
+		if(this.mode===0)
+		{
+			// run audio, too
+			this.videoout = this.stacka.pop();
+			//if((this.useFFAudio || this.useChromeAudio) && this.useAudio) 
+			if(bUseAudio) 
+			{
+				if(this.stackmode===1 && !this.recalcAudio)
+					this.audioout=this.videoout; // same stack data, skip the processing bulk
+				else if((x%128)==0 && this.recalcAudio)
+				{
+					this.mode=1;
+					this.terminate = 0;
+					//this.stacka.length=0;
+					this.stacka.reset();
+					this.ip = 0;
+					this.pmaudio(x,y);
+					this.exec(x,y);
+				}
+			}
+		}
+		//if((this.useFFAudio || this.useChromeAudio) && this.useAudio && this.mode===1) {
+		if(bUseAudio && this.mode===1) {
+			this.audioout = this.stacka.pop();
+		}
+
+	}
+	
+	this.isLimm = function(ci)
+	{
+		// is 0-9? A-F? .?
+		return ((ci>=48 && ci<=57) || (ci>=65 && ci<=70) || (ci==46));
+	}
+	this.isImmop = function(ci)
+	{
+		return ((ci>=112 && ci<=115)||ci==43||ci==45||ci==42||ci==47||ci==37||ci==38||ci==124||ci==94||ci==108||ci==126||ci==97||ci==100||ci==40||ci==41||ci==74||ci==33||ci==64||ci==86||ci==88||ci==80||ci==123);
+	}
+	this.isOpcode = function(ci)
+	{
+		return (this.isImmop(ci) || this.isLimm(ci) || ci==77||(ci>=118&&ci<=120)||ci==63||ci==58||ci==59||ci==82||ci==84||ci==105||ci==106||ci==91||ci==93||ci==76||ci==125);
+	}
+	this.parse = function()
+	{
+		var i = 0;
+		var j = 0;
+		var comment = 0;
+		while(i<this.code.length)
+		{
+			var a = this.code[i].charCodeAt(0);
+			if(comment==1){
+				//search for eol
+				if(a==10 || a==13)comment=0;
+				i++;
+			}else
+			if(this.isLimm(a))
+			{
+				// Loadimm!
+				var imm1 = 0; // number
+				var imm2 = 0; // fraction
+				var imm2_c = 12;
+				var mode = 0; // number/fraction time?
+				while(this.isLimm(a) && i<this.code.length)
+				{
+					if(a==46) mode=1; // dot, time to switch modes!
+					else {
+						if(mode==0)
+						{
+							if(a>=48 && a<=57) imm1=(imm1<<4)|(a-48); // number, 0-9
+							else imm1=(imm1<<4)|(a-55); // fraction, A-F
+						}
+						else if(imm2_c>0)
+						{
+							if(a>=48 && a<=57) imm2=imm2|((a-48)<<imm2_c); // fraction, 0-9
+							else imm2=imm2|((a-55)<<imm2_c); // fraction, A-F
+							imm2_c-=4;
+						}
+					}
+					i++; // increment IP
+					if(i<this.code.length) a = this.code[i].charCodeAt(0); // char->int (checks for ip overrun)
+				}
+				if(i<this.code.length) a = this.code[i].charCodeAt(0);
+				else a=0;
+				var out = ((imm1&65535)<<16)|(imm2&65535);
+				if(this.isImmop(a))
+				{
+					switch(a)
+					{
+						case 115:
+							this.parsedCode[j] = new Array(2,Math.sin(out*(Math.PI/32768))*65536); 
+							break;
+						case 113:
+							this.parsedCode[j] = new Array(2,0 > out ? 0 : 65536 * Math.sqrt(out / 65536)); 
+							break;
+						case 126:
+							this.parsedCode[j] = new Array(2,~out); 
+							break;
+						case 123:
+							this.parsedCode[j] = new Array(5,this.rol16(out)&1048575,123,0);
+							break;
+						case 40:
+						case 41:
+							this.parsedCode[j] = new Array(3,0-this.rol16(out),a);
+							break;
+						case 74:
+						case 86:
+							this.parsedCode[j] = new Array(3,this.rol16(out),a);
+							break;
+						case 64:
+							var addr = this.rol16(out)&1048575;
+							if(addr<0xC8000) this.parsedCode[j] = new Array(3,addr,128);
+							else this.parsedCode[j] = new Array(3,addr,a);
+							break;
+						case 33:
+							var addr = this.rol16(out)&1048575;
+							if(addr<0xC8000) this.parsedCode[j] = new Array(3,addr,129);
+							else this.parsedCode[j] = new Array(3,addr,a);
+							break;
+						default:
+							this.parsedCode[j] = new Array(3,out,a);
+							break;
+					}
+					i++;
+				}
+				else this.parsedCode[j] = new Array(2,out);
+				j++;
+			}
+			else if(this.isOpcode(a))
+			{
+				switch(a)
+				{
+					case 125:
+						var t = j;
+						var chr = 0;
+						while(chr!=123 && t>=0)
+						{
+							t--;
+							if(this.parsedCode[t] && this.parsedCode[t][0]==1) chr = this.parsedCode[t][1];
+							else if(this.parsedCode[t] && this.parsedCode[t][0]==5) chr = this.parsedCode[t][2];
+						}
+						if(t>=0)
+						{
+							if(this.parsedCode[t] && this.parsedCode[t][0]==5)
+								this.parsedCode[t] = new Array(5,this.parsedCode[t][1],chr,j);
+							else this.parsedCode[t] = new Array(4,chr,j);
+						}
+						this.parsedCode[j] = new Array(1,a);
+						break;
+					case 58:
+						var t = j;
+						var chr = 0;
+						while(chr!=63 && t>=0)
+						{
+							t--;
+							if(this.parsedCode[t] && this.parsedCode[t][0]==1) chr = this.parsedCode[t][1];
+						}
+						if(t>=0) this.parsedCode[t] = new Array(4,chr,j);
+						this.parsedCode[j] = new Array(1,a);
+						break;
+					case 59:
+						var t = j;
+						var chr = 0;
+						while(chr!=58 && t>=0)
+						{
+							t--;
+							if(this.parsedCode[t] && this.parsedCode[t][0]==1) chr = this.parsedCode[t][1];
+						}
+						if(t>=0) this.parsedCode[t] = new Array(4,chr,j);
+						this.parsedCode[j] = new Array(1,a);
+						break;
+					case 118:
+						this.parsedCode[j] = new Array(1,a);
+						if(i+1<this.code.length)
+						{
+							var b = this.code[i+1].charCodeAt(0);
+							if(b==118)
+							{
+								this.parsedCode[j] = new Array(1,128);
+								i++;
+							}
+						}
+						break;
+					default:
+						this.parsedCode[j] = new Array(1,a);
+						break;
+				}
+				i++;
+				j++;
+			}
+			else if(a==92){//comment
+				comment = 1;//ignore
+				i++;
+			}
+			else i++;
+		}
+	}
+	this.compile = function()
+	{
+/*
+		// TODO: fix parse ip settings
+		var i = 0;
+		var oldCode = this.code;
+		this.evals = new Array();
+		this.evals[0] = function(){};
+		while(i<oldCode.length)
+		{
+			this.parse();
+			this.evaluate();
+			this.evals[i] = this.evalCode;
+			this.code = this.code.substr(1);
+			this.parsedCode = new Array();
+			i++;
+		}
+*/
+		var i = 0;
+		var oldCode = this.parsedCode;
+		this.parse();
+		this.evals = new Array();
+		this.evals[0] = function(){};
+		while(i<oldCode.length)
+		{
+			this.evaluate(i);
+			this.evals[i] = this.evalCode;
+			//this.parsedCode = this.parsedCode.slice(1);
+			i++;
+		}
+		this.parsedCode = oldCode;
+	}
+	this.evalRol16 = function(a)
+	{
+		return "((" + a + "<<16)|(" + a + ">>>16))";
+	}
+
+	this.WORDD2PI = (65536/(2*Math.PI));
+	this.TWOPIDWORD = (2*Math.PI/65536);
+	this.PIDHWORD=(Math.PI/32768);
+	this.ONESHL16 = 1<<16;
+	
+	this.evaluate = null;//TODO
+	
+	this.mediaSwitch=true;
+	this.configureStackmode = function()
+	{
+		// reset the machine
+		this.mode = 0;
+		this.stackmode = 0;
+		this.terminate = 0;
+		//this.stacka.length=0;
+		this.stacka.reset();
+		this.ip = 0;
+		// push media context
+		this.pm0();
+		// loop
+		this.mediaSwitch=false;
+		this.exec(0,0);
+		if(this.stacka.length>1) this.stackmode = 1;
+		this.compilepushmedia();
+	}
+	this.getOp = function(ip)
+	{
+		var cmd = this.parsedCode[this.ip];
+		if(cmd[0]==1 || cmd[0]==4) return cmd[1];
+		else if(cmd[0]==3) return cmd[2];
+		else return 0;
+	}
+	
+	var at2cache=new Map();
+	function atan2_o2(a,b){
+		//var s=((a|0)<<8)|b;
+		//var s=(a<<16)^b;
+		//var s=""+a+"_"+b;
+		var s={a:a,b:b};
+		var cv = at2cache.get(s);
+		if(!cv){
+			cv=Math.atan2(a,b);
+			//console.log(at2cache.keys());
+		}
+		at2cache.set(s,cv);
+		return cv;
+		//var c= (b===0) ? 0 : a/b;
+		//return Math.abs(c)<0.5 ? c :  Math.atan2(a,b);
+	}
+	
+	function atan2w_o2(a,b){
+		//var s=((a|0)<<8)|b;
+		//var s=(a<<16)^b;
+		var s=""+a+"_"+b;
+		//var s={a:a,b:b};
+		var cv = at2cache.get(s);
+		if(!cv){
+			cv=(Math.atan2(a,b)*10416)|0;
+			//console.log(at2cache.keys());
+		}
+		at2cache.set(s,cv);
+		return cv;
+		//var c= (b===0) ? 0 : a/b;
+		//return Math.abs(c)<0.5 ? c :  Math.atan2(a,b);
+	}
+
+	function atan2w_o(a,b){
+		return (Math.atan2(a,b)*10416)|0;
+	}
+	
+	
+	function atan2_o(a,b){
+		//if(a===b)return 3.14;
+		return Math.atan2(a,b);
+		/*
+		var c = b==0 ? 0: a/b;
+		return Math.abs(c<1) ? c : Math.atan2(a,b);
+		*/
+	}
+
+	var coeff_1 = Math.PI / 4;
+	var coeff_2 = 3 * coeff_1;
+	function atan2_o4(y,x){
+      var abs_y = Math.abs(y);
+      var angle,r;
+      if (x >= 0) {
+        r = (x - abs_y) / (x + abs_y);
+        angle = coeff_1 - coeff_1 * r;
+      } else {
+        r = (x + abs_y) / (abs_y - x);
+        angle = coeff_2 - coeff_1 * r;
+      }
+      return y < 0 ? -angle : angle;
+	}
+
+	function atan2_o6(y,x){
+      var abs_y = Math.abs(y);
+      var angle;//, r;
+      if (x >= 0) {
+        //r = (x - abs_y) / (x + abs_y);
+        //angle = coeff_1 - coeff_1 * r;
+		angle = coeff_1*(1 - (x - abs_y) / (x + abs_y));
+      } else {
+        //r = (x + abs_y) / (abs_y - x);
+        //angle = coeff_2 - coeff_1 * r;
+		angle = coeff_1*(3 - (x + abs_y) / (abs_y - x));
+      }
+      return y < 0 ? -angle : angle;
+	}
+	
+	function atan2w_o7(y,x){
+      var abs_y = Math.abs(y);
+      var angle;//, r;
+      if (x >= 0) {
+        //r = (x - abs_y) / (x + abs_y);
+        //angle = coeff_1 - coeff_1 * r;
+		angle = 10416*(1 - (x - abs_y) / (x + abs_y));
+      } else {
+        //r = (x + abs_y) / (abs_y - x);
+        //angle = coeff_2 - coeff_1 * r;
+		angle = 10416*(3 - (x + abs_y) / (abs_y - x));
+      }
+      return y < 0 ? -angle : angle;
+	}	
+
+	function atan2w_o8(y,x){
+      var abs_y = Math.abs(y);
+      var angle;//, r;
+	  var xysum = x + abs_y, xydiff = x - abs_y;
+	  
+      if (x >= 0) {
+        //r = (x - abs_y) / (x + abs_y);
+        //angle = coeff_1 - coeff_1 * r;
+		angle = 10416*(1 - xydiff / xysum);
+      } else {
+        //r = (x + abs_y) / (abs_y - x);
+        //angle = coeff_2 - coeff_1 * r;
+		angle = 10416*(3 + xysum / xydiff);
+      }
+      return y < 0 ? -angle : angle;
+	}	
+	var at2c1=10416;
+	var at2c2=3*10416;
+	
+	function atan2w_o9(y,x){
+      var abs_y = Math.abs(y);
+      var angle;//, r;
+	  var xysum = x + abs_y, xydiff = x - abs_y;
+	  
+      if (x >= 0) {
+        //r = (x - abs_y) / (x + abs_y);
+        //angle = coeff_1 - coeff_1 * r;
+		angle = (at2c1 - at2c1*xydiff / xysum);
+      } else {
+        //r = (x + abs_y) / (abs_y - x);
+        //angle = coeff_2 - coeff_1 * r;
+		angle = (at2c2 + at2c1*xysum / xydiff);
+      }
+      return y < 0 ? -angle : angle;
+	}
+	
+	function atan2_o5(y,x){
+		var atan, z;	    
+		if (x == 0) {
+			if (y > 0) return Math.PI/2;
+			if (y == 0) return 0;
+			return -Math.PI/2;
+        }
+        z = y/x;
+        if (Math.abs(z) < 1) {
+			atan = z / (1 + 0.28*z*z);
+			if (x < 0) {
+					if (y < 0) return atan - Math.PI;
+					return atan + Math.PI;
+			}
+        }   else {
+			atan = Math.PI/2 - z / (z*z + 0.28);
+			if (y < 0) return atan - Math.PI;
+        }
+        return atan;
+	}
+	
+	//sin opt
+	var sin_table = Float64Array.from(
+		[0, 0.049067674327418015, 0.0980171403295606, 0.14673047445536175, 0.19509032201612825, 0.24298017990326387, 0.29028467725446233, 0.33688985339222005, 0.3826834323650898, 0.4275550934302821, 0.47139673682599764, 0.5141027441932217, 0.5555702330196022, 0.5956993044924334, 0.6343932841636455, 0.6715589548470183, 0.7071067811865475, 0.7409511253549591, 0.773010453362737, 0.8032075314806448, 0.8314696123025452, 0.8577286100002721, 0.8819212643483549, 0.9039892931234433, 0.9238795325112867, 0.9415440651830208, 0.9569403357322089, 0.970031253194544, 0.9807852804032304, 0.989176509964781, 0.9951847266721968, 0.9987954562051724, 1, 0.9987954562051724, 0.9951847266721969, 0.989176509964781, 0.9807852804032304, 0.970031253194544, 0.9569403357322089, 0.9415440651830208, 0.9238795325112867, 0.9039892931234434, 0.881921264348355, 0.8577286100002721, 0.8314696123025455, 0.8032075314806449, 0.7730104533627371, 0.740951125354959, 0.7071067811865476, 0.6715589548470186, 0.6343932841636455, 0.5956993044924335, 0.5555702330196022, 0.5141027441932218, 0.47139673682599786, 0.42755509343028203, 0.3826834323650899, 0.33688985339222033, 0.2902846772544624, 0.24298017990326407, 0.1950903220161286, 0.1467304744553618, 0.09801714032956083, 0.049067674327417966, 1.2246467991473532e-16, -0.049067674327417724, -0.09801714032956059, -0.14673047445536158, -0.19509032201612836, -0.24298017990326382, -0.2902846772544621, -0.3368898533922201, -0.38268343236508967, -0.4275550934302818, -0.47139673682599764, -0.5141027441932216, -0.555570233019602, -0.5956993044924332, -0.6343932841636453, -0.6715589548470184, -0.7071067811865475, -0.7409511253549589, -0.7730104533627367, -0.803207531480645, -0.8314696123025452, -0.857728610000272, -0.8819212643483549, -0.9039892931234431, -0.9238795325112865, -0.9415440651830208, -0.9569403357322088, -0.970031253194544, -0.9807852804032303, -0.9891765099647809, -0.9951847266721969, -0.9987954562051724, -1, -0.9987954562051724, -0.9951847266721969, -0.9891765099647809, -0.9807852804032304, -0.970031253194544, -0.9569403357322089, -0.9415440651830209, -0.9238795325112866, -0.9039892931234433, -0.881921264348355, -0.8577286100002722, -0.8314696123025455, -0.8032075314806453, -0.7730104533627369, -0.7409511253549591, -0.7071067811865477, -0.6715589548470187, -0.6343932841636459, -0.5956993044924332, -0.5555702330196022, -0.5141027441932219, -0.4713967368259979, -0.42755509343028253, -0.3826834323650904, -0.33688985339222, -0.2902846772544625, -0.24298017990326418, -0.19509032201612872, -0.1467304744553624, -0.0980171403295605, -0.04906767432741809]
+	)
+	;
+    
+    function sin_o1(x) {
+      return sin_table[~~(x % 128)];
+    }
+    
+    function sin_o2(x) {
+      return sin_table[(x % 128)|0];
+    }
+	
+	var B = 4 / Math.PI;
+    var C = -4 / Math.pow( Math.PI, 2 );
+    var P = 0.225;
+    
+    function sin_o3( x ) {
+		var n;
+        return P * ((n = B * x + C * x * Math.abs(x)) * Math.abs(n) - n) + n;
+    }
+    
+    function sin_o4( x ) {
+        return B * x + C * x * Math.abs(x);
+    }
+	
+	var sin=Math.sin;
+	
+
+		this.evaluate = function (startIP)
+		{
+			function evalme(cmd,me){
+				var a; var stacka = me.stacka; var steps;
+		
+				switch(cmd[0])
+					{
+						case 1: // op
+							switch(cmd[1])
+							{
+								// Math!
+								case 43:
+									return function(me,x,y){
+									//stacka.push((stacka.pop()+stacka.pop())|0);
+									stacka.dpush(stacka.pop()+stacka.pop());
+									//stacka.plus();
+									}
+								break;
+								case 45:
+									return function(me,x,y){
+									//a = stacka.pop(); stacka.push((stacka.pop()-a)|0);
+									//stacka.push((-stacka.pop()+stacka.pop())|0);
+									stacka.dpush((-stacka.pop()+stacka.pop()));
+									}
+								break;
+								case 42:
+									return function(me,x,y){
+									stacka.push((stacka.pop()*stacka.pop()/65536)|0);
+									}
+								break;
+								case 47:
+									return function(me,x,y){
+									a = stacka.pop(); stacka.push((stacka.pop()*65536/a)|0);
+									}
+								break;
+								case 37:
+									return function(me,x,y){
+									a = stacka.pop(); stacka.push(stacka.pop()%a);
+									}
+								break;
+								case 38:
+									return function(me,x,y){
+									stacka.push(stacka.pop()&stacka.pop());
+									}
+								break;
+								case 124:
+									return function(me,x,y){
+									stacka.push(stacka.pop()|stacka.pop());
+									}
+								break;
+								case 94:
+									return function(me,x,y){
+									stacka.push(stacka.pop()^stacka.pop());
+									}
+								break;
+								case 108:
+									return function(me,x,y){
+									steps = (stacka.pop()>>16)&63; a = stacka.pop(); stacka.push(steps<32 ? a<<steps : a>>(steps-32));
+									}
+								break;
+								case 114:
+									return function(me,x,y){
+									//steps = (stacka.pop()>>16)&31; a = stacka.pop(); stacka.push((a>>>steps)|(a<<(32-steps)));
+									steps = (stacka.dpop()>>16)&31; a = stacka.dpop(); stacka.dpush((a>>>steps)|(a<<(32-steps)));
+									}
+								break;
+								case 97:
+									return function(me,x,y){
+									//stacka.push((Math.atan2(stacka.pop(),stacka.pop())*me.WORDD2PI)|0);
+									//stacka.push((atan2_o(stacka.pop(),stacka.pop())*me.WORDD2PI)|0);
+									//stacka.push(atan2w_o(stacka.pop(),stacka.pop()));
+									//stacka.push((Math.atan2(stacka.pop(),stacka.pop())*10416)|0);
+									//stacka.push((atan2_o4(stacka.pop(),stacka.pop())*10416)|0);
+									//stacka.push((atan2_o5(stacka.pop(),stacka.pop())*10416)|0);
+									//stacka.push((atan2_o6(stacka.pop(),stacka.pop())*10416)|0);
+									//stacka.push((atan2w_o7(stacka.pop(),stacka.pop()))|0);
+									//stacka.push((atan2w_o8(stacka.pop(),stacka.pop()))|0);
+									stacka.push((atan2w_o9(stacka.pop(),stacka.pop()))|0);
+									}
+								break;
+								case 115:
+									return function(me,x,y){
+									//stacka.push((Math.sin(stacka.pop()*me.TWOPIDWORD)*65536)|0);
+									stacka.push((sin(stacka.pop()*me.TWOPIDWORD)*65536)|0);
+									}
+								break;
+								case 113:
+									return function(me,x,y){
+									a = stacka.pop(); stacka.push(0 > a ? 0 : (65536 * Math.sqrt(a / 65536))|0);
+									}
+								break;
+								case 60:
+									return function(me,x,y){
+									a = stacka.pop(); stacka.push(0 > a ? a : 0);
+									}
+								break;
+								case 62:
+									return function(me,x,y){
+									a = stacka.pop(); stacka.push(0 < a ? a : 0);
+									}
+								break;
+								case 61:
+									return function(me,x,y){
+										stacka.push(stacka.pop()==0);
+									}
+									break;
+								case 126:
+									return function(me,x,y){
+										stacka.push(~stacka.pop());
+									}
+									break;
+								// Exterior!
+								case 77: // media context switch
+									return function(me,x,y){
+									if(!me.mediaSwitch || !me.useAudio) return -15498;//TODO
+									else{me.mode=1; me.videoout = stacka.pop(); 
+									//stacka.length=0;
+									stacka.reset();
+									me.pmaudio(x,y)};
+									}
+									break;
+								case 119: // where am I? well, where are you
+									return function(me,x,y){
+									me.pushmedia(x,y);
+									}
+									break;
+								case 84:
+									return function(me,x,y){
+									return -15498;
+									}
+									break;
+								// Stack!
+								case 100:
+									return function(me,x,y){
+									//stacka.dup();
+										//stacka.push(stacka[stacka.length-1]);
+										stacka.push(stacka.get(stacka.length-1));
+									}
+									break;
+								case 120:
+									return function(me,x,y){
+									stacka.exchange();
+									}
+									break;
+								case 118:
+									//return function(me,x,y){
+									return function(){
+									stacka.trirot();
+									}
+									break;
+								case 112:
+									return function(me,x,y){
+									stacka.pop();
+									}
+									break;
+								case 41:
+									return function(me,x,y){
+									stacka.push(stacka.gettop(0-me.rol16(stacka.pop())));
+									}
+									break;
+								case 40:
+									return function(me,x,y){
+									a = 0-me.rol16(stacka.pop()); stacka.puttop(a,stacka.pop());
+									}
+									break;
+								// Memory!
+								case 64:
+									return function(me,x,y){
+									stacka.push(me.get(me.rol16(stacka.pop())&1048575));
+									}
+									break;
+								case 33:
+									return function(me,x,y){
+									a = me.rol16(stacka.pop()); me.put(a&1048575,stacka.pop());
+									}
+									break;
+								// Return stack manipulation	
+								case 82:
+									return function(me,x,y){
+									stacka.push(me.rstacka.pop());
+									}
+									break;
+								case 80:
+									return function(me,x,y){
+									me.rstacka.push(stacka.pop());
+									}
+									break;
+								// Loops
+								case 105:
+									return function(me,x,y){
+									stacka.push(me.rstacka.gettop(-1));
+									}
+									break;
+								case 106:
+									return function(me,x,y){
+									stacka.push(me.rstacka.gettop(-3));
+									}
+									break;
+								case 74:
+									return function(me,x,y){
+									return me.rol16(stacka.pop())-1;
+									}
+									break;
+								case 91:
+									return function(me,x,y){
+									me.rstacka.push(me.rol16(me.ip+1));
+									}
+									break;
+								case 93:
+									return function(me,x,y){
+									if(stacka.pop()!=0) return me.rol16(me.rstacka.gettop(0))-1;
+									else me.rstacka.pop();
+									}
+									break;
+								case 88:
+									return function(me,x,y){
+									me.rstacka.push(stacka.pop());
+									me.rstacka.push(me.rol16(me.ip+1));
+									}
+									break;
+								case 76:
+									return function(me,x,y){
+									//a=me.rstacka.gettop(-1)-(1<<16);
+									a=me.rstacka.gettop(-1)-me.ONESHL16;
+									me.rstacka.puttop(-1,a);
+									if(a) return me.rol16(me.rstacka.gettop(0))-1;
+									else { me.rstacka.pop(); me.rstacka.pop(); };
+									}
+									break;
+								// Subroutines
+								case 125:
+									return function(me,x,y){
+									return me.rol16(me.rstacka.pop())-1;
+									}
+									break;
+								case 86:
+									return function(me,x,y){
+									me.rstacka.push(me.rol16(me.ip+1));
+									return me.rol16(me.get(me.rol16(stacka.pop())&1048575))-1;
+									}
+									break;
+								// Special
+								case 128: // Double trirot
+									return function(me,x,y){
+									stacka.trirot2();
+									}
+									break;
+								default:
+									break;
+							}
+							break;
+						case 5: // imm+op+nextip
+							switch(cmd[2])
+							{
+								case 123:
+									return function(me,x,y){
+									me.put(cmd[1],me.rol16(me.ip+1));
+									me.ip=cmd[3];
+									}
+									break;
+							}
+							break;
+						case 4: // op+nextip
+							switch(cmd[1])
+							{
+								case 123:
+									return function(me,x,y){
+									me.put(me.rol16(stacka.pop())&1048575,me.rol16(me.ip+1));
+									me.ip=cmd[2];
+									}
+									break;
+								case 63:
+									return function(me,x,y){
+										if(stacka.pop()==0) return cmd[2];
+									}
+									break;
+								case 58:
+									return function(me,x,y){
+									me.ip=cmd[2];
+									}
+									break;
+							}
+							break;
+						case 3: // imm+op
+							switch(cmd[2])
+							{
+								case 43:
+									return function(me,x,y){
+									stacka.push((cmd[1]+stacka.pop())|0);
+									}
+									break;
+								case 45:
+									return function(me,x,y){
+									stacka.push((stacka.pop()-cmd[1])|0);
+									}
+									break;
+								case 42:
+									return function(me,x,y){
+									stacka.push(((cmd[1]*stacka.pop())/65536)|0);
+									}
+									break;
+								case 47:
+									return function(me,x,y){
+									stacka.push(((stacka.pop()*65536)/cmd[1])|0); 
+									}
+									break;
+								case 37:
+									return function(me,x,y){
+									stacka.push(stacka.pop()%cmd[1]);
+									}
+									break;
+								case 38:
+									return function(me,x,y){
+									stacka.push(cmd[1]&stacka.pop());
+									}
+									break;
+								case 124:
+									return function(me,x,y){
+									stacka.push(cmd[1]|stacka.pop()); 
+									}
+									break;
+								case 94:
+									return function(me,x,y){
+									stacka.push(cmd[1]^stacka.pop());
+									}
+									break;
+								case 108:
+									return function(me,x,y){
+									//stacka.push(me.shl(cmd[1],stacka.pop()));
+									stacka.shltop(cmd[1]);
+									}
+									break;
+								case 114:
+									return function(me,x,y){
+									//stacka.push(me.ror(cmd[1],stacka.pop())); 
+									stacka.rortop(cmd[1]); 
+									}
+									break;
+								/*
+								case 108:
+									steps = "+((cmd[1]>>16)&63)+"; a = stacka.pop(); stacka.push(steps<32 ? a<<steps : a>>(steps-32));
+									break;
+								case 114:
+									steps = "+((cmd[1]>>16)&31)+"; a = stacka.pop(); stacka.push((a>>>steps)|(a<<(32-steps)));
+								*/
+									break;
+								case 97:
+									return function(me,x,y){
+									stacka.push((Math.atan2(cmd[1],stacka.pop())*me.WORDD2PI)|0); 
+									}
+									break;
+								case 115:
+									return function(me,x,y){
+									//stacka.push(((Math.sin(cmd[1]*me.PIDHWORD)*65536)|0)); 
+									//stacka.push(((sin(cmd[1]*me.PIDHWORD)*65536)|0)); 
+									stacka.dpush(((sin(cmd[1]*me.PIDHWORD)*65536))); 
+									//stacka.push(((sin_o1(cmd[1]*me.PIDHWORD)*65536)|0)); 
+									//stacka.push(((sin_o2(cmd[1]*me.PIDHWORD)*65536)|0));
+									//stacka.push(((sin_o3(cmd[1]*me.PIDHWORD)*65536)|0));
+									//stacka.push(((sin_o4(cmd[1]*me.PIDHWORD)*65536)|0));
+									}
+									break;
+								case 113:
+									return function(me,x,y){
+									stacka.push((0 > cmd[1] ? 0 : (65536 * Math.sqrt(cmd[1] / 65536))|0));
+									}
+									break;
+								case 126:
+									return function(me,x,y){
+									stacka.push((~cmd[1])); 
+									}
+									break;
+								case 100:
+									return function(me,x,y){
+									stacka.push(cmd[1],cmd[1]);
+									}
+									break;
+								case 40:
+									return function(me,x,y){
+									stacka.puttop(cmd[1],stacka.pop());
+									}
+									break;
+								case 41:
+									return function(me,x,y){
+									stacka.push(stacka.gettop(cmd[1]));//TODO rotozoomer most used function
+									//console.log(stacka.length,cmd[1]);
+									}
+									break;
+								case 74:
+									return function(me,x,y){
+									return cmd[1];
+									}
+									break;
+								case 64:
+									return function(me,x,y){
+									stacka.push(me.get(cmd[1]));
+									}
+									break;
+								case 33:
+									return function(me,x,y){
+									me.put(cmd[1],stacka.pop());
+									}
+									break;
+								case 86:
+									return function(me,x,y){
+									me.rstacka.push(me.rol16(me.ip+1));
+									return me.rol16(me.get(cmd[1]))-1;
+									
+									}
+									break;
+								case 88:
+									return function(me,x,y){
+									//console.log("here 88",me.rstacka);
+									me.rstacka.push(cmd[1]);
+									me.rstacka.push(me.rol16(me.ip+1));
+									}
+									break;
+								case 80:
+									return function(me,x,y){
+									me.rstacka.push(cmd[1]);
+									}
+									break;
+								case 112:
+									break;
+								// special
+								case 128: // direct load
+									return function(me,x,y){
+									stacka.push(me.mem[cmd[1]]);
+									}
+									break;
+								case 129: // direct store
+									return function(me,x,y){
+									me.mem[cmd[1]]=stacka.pop();
+									}
+									break;
+							}
+							break;
+						case 2: // imm
+							return function(me,x,y){
+							stacka.dpush(cmd[1]);
+							}
+							break;
+						default:
+							break;
+					}
+			}
+
+			var tempCode = "";
+			var cmd;
+			//tempCode += "var a; var stacka = me.stacka; var steps;";
+			this.ip=startIP;
+			//for(this.ip=startIP; this.ip<this.parsedCode.length; this.ip++)
+			//{
+				cmd = this.parsedCode[this.ip];
+				this.evalCode = evalme(cmd,this);
+				//console.log(cmd[0],cmd[1],cmd[2]);
+				//var a; var stacka = me.stacka; var steps;
+				//return -15498;
+			//}
+			//eval("this.evalCode = function(me,x,y) {" + tempCode + " return -15498;};");
+		}
+
+		
+	this.exec_0 = function(x,y)
+	{
+		var fr;
+		//var br=false;
+		var pcl=this.parsedCode.length;
+		var ip=this.ip;
+		while(ip>=0 && ip<pcl){
+			fr = this.evals[ip](this,x,y);
+			if(fr !== void 0){
+			console.log('fr from evals',fr,this.ip);
+				this.ip = fr+1; //TODO check +1
+				//br=true;
+				//break;
+				return;
+			}
+			this.ip++;
+			ip=this.ip;
+		}
+		//if(!br)
+		this.ip=(-15498+1);//TODO check +1
+	}
+
+	this.exec = function(x,y)
+	{
+		var fr;
+		var pcl=this.parsedCode.length;
+		while(this.ip>=0 && this.ip<pcl){
+			fr = this.evals[this.ip](this,x,y);
+			if(fr === void 0){
+				this.ip++;
+			}else{
+				this.ip = fr+1;
+				//if(this.ip<0 || this.ip>=pcl)return;//TODO is it good exit? omitting ip setting at the end
+			}
+		}
+		this.ip=(-15498+1);//TODO check +1
+	}
+	
+	this.useFFAudio = false;
+	this.useChromeAudio = false;
+	this.recalcAudio = false;
+	this.audioProgProcessed = false;
+	this.buffer = new Float32Array(512);
+
+	//if(typeof Audio !== 'undefined')
+	if(Audio !== void 0)
+	{
+		this.audioOut = new Audio();
+		if(this.audioOut.mozSetup)
+		{
+			this.audioOut.mozSetup(1,512*60);
+			this.useFFAudio = true;
+		}
+	}
+	//if(typeof AudioContext !== 'undefined')
+	if(AudioContext !== void 0)
+	{
+		this.audioCtx = new AudioContext();
+		this.audioSR = this.audioCtx.sampleRate/60;
+		this.useChromeAudio = true;
+	}
+
+	//original canvas method
+	this.render = function(c)
+	{
+		//image data created outside
+		//var idd = c.createImageData(256,256);
+		var id = idd.data;
+		var imgpos = 0;
+		var ncy = 0;
+		var cu = 0;
+		var cv = 0;
+		var y;
+		var x;
+		var yl1;
+		var bRunAudio = this.useAudio && !this.audioProgProcessed;
+		for(y=0;y<256;y++)
+		{
+			yl1=y<<1;
+			
+			//for run(x,y)
+			last_pm1_tc = this.t<<16;
+			last_pm2_tyc =  last_pm1_tc | pa_pm_bl8[y];//(y<<8);
+			last_pm_ty=y;
+			last_pm1_yc = pa_pm_bl9[y];
+			last_pm1_yl8c = pa_pm_bl8[y];
+
+	
+			for(x=0;x<256;x++)
+			{
+				this.run(x,y);
+				
+				//p.videoout = 0x00000000|((y&255)<<8);
+				p.videoout=(p.videoout>>>0)&0x00ffffff;
+				
+				ncy = 298*((p.videoout>>>8)&255)+128;
+				cu = (((p.videoout>>>16)&255)^0x80)-128;
+				cv = ((p.videoout>>>24)^0x80)-128;
+				
+				id[imgpos++] = byteclamp((ncy + 409*cv)>>8);
+				id[imgpos++] = byteclamp((ncy - 100*cu - 208*cv)>>8);
+				id[imgpos++] = byteclamp((ncy + 516*cu)>>8);
+				id[imgpos++] = 255;
+				if(bRunAudio)this.buffer[yl1] = (((this.audioout&65535)^32768)-32768)/32768;
+			}
+		}
+		//document.getElementById('dybug').innerHTML= cu;
+		c.putImageData(idd,0,0);
+		this.audioProgProcessed=true;
+	}
+	function byteclamp(v){
+		if(v<0)return 0;
+		else if(v>255) return 255;
+		else return v;
+	}
+	
+	//WEBGL method
+	this.vidbuffer=new Uint32Array(256*256);
+	this.vidbufferViewUI8 = new Uint8Array(this.vidbuffer.buffer);
+	this.renderWebgl=function(){
+		//var imgpos = 0;
+		var imgpos32 = 0;
+		//var cy=0;
+		//var ncy = 0;
+		//var cu = 0;
+		//var cv = 0;
+		//var y;
+		//var x;
+		var bRunAudio = this.useAudio && !this.audioProgProcessed;
+		
+		for(var y=0;y<256;y++)
+		{
+			//for run(x,y)
+			last_pm1_tc = this.t<<16;
+			last_pm1_yl8c = pa_pm_bl8[y];
+			last_pm2_tyc =  last_pm1_tc | last_pm1_yl8c;
+			//last_pm_ty=y;
+			last_pm1_yc = pa_pm_bl9[y];
+			
+			imgpos32=this.xloop(imgpos32,y);
+			if(bRunAudio){
+				//this.buffer[y<<1] = (((this.audioout&65535)^32768)-32768)/32768;
+				this.fillAudioBuffer(y);
+			}
+		}
+		//wpb.draw(new Uint8Array(this.vidbuffer.buffer),256,256);//data,width,height,dataFormat
+		wpb.draw(this.vidbufferViewUI8,256,256);//data,width,height,dataFormat
+		this.audioProgProcessed=true;
+	}
+
+	this.xloop=function(imgpos32, y){
+		for(var x=0;x<256;x++)
+		{
+			this.run(x,y);
+			this.vidbuffer[imgpos32++] = (p.videoout)^0x80800000;//TODO xor in shader
+		}
+		return imgpos32;
+	}
+	
+	this.fillAudioBuffer=function(y){
+		this.buffer[y<<1] = (((this.audioout&65535)^32768)-32768)/32768;
+	}
+	
+	function yuv2rgb(y,u,v){
+	  y=parseInt(y);
+	  u=parseInt(u);
+	  v=parseInt(v);
+	  var r=clamp(Math.floor(y+1.4075*(v-128)),0,255);
+	  var g=clamp(Math.floor(y-0.3455*(u-128)-(0.7169*(v-128))),0,255);
+	  var b=clamp(Math.floor(y+1.7790*(u-128)),0,255);
+	  return({r:r,g:g,b:b});
+	}
+
+	function clamp(n,low,high){
+		if(n<low){return(low);}
+		if(n>high){return(high);}
+	}
+
+	function renderMozillaAudio(){
+		this.audioOut.mozWriteAudio(this.buffer);
+	}
+	function renderChromeAudio0(){
+		//if(this.audioOut.noteOff) this.audioOut.noteOff(0);
+		if(this.audioOut.stop)this.audioOut.stop(0);
+		//preinitialized
+		this.fixbuffer = new Float32Array(this.audioSR);
+		for(var i=0;i<this.audioSR;i++)
+		{
+			var t1 = i*512/this.audioSR;
+			//var t2 = t1-Math.floor(t1);
+			//this.fixbuffer[i]=this.buffer[Math.floor(t1)]*(1-t2)+this.buffer[Math.ceil(t1)]*t2;
+			this.fixbuffer[i]=this.buffer[Math.floor(t1)];//no interpolation
+		}
+		this.aBuffer = this.audioCtx.createBuffer(1,this.audioSR,this.audioSR*60);
+		this.aBuffer.getChannelData(0).set(this.fixbuffer);
+		this.audioOut = this.audioCtx.createBufferSource();
+		this.audioOut.buffer=this.aBuffer;
+		this.audioOut.connect(this.audioCtx.destination);
+		//this.audioOut.noteOn(0);
+		this.audioOut.start(0);
+		this.audioOut.loop = true;
+	}
+	var audioConnected=false;
+	function renderChromeAudio(){
+		//if(this.audioOut.noteOff) this.audioOut.noteOff(0);
+		if(this.audioOut.stop)this.audioOut.stop(0);
+
+		if(!audioConnected)this.aBuffer = this.audioCtx.createBuffer(1,512,Math.floor(this.audioSR*60*512/this.audioSR));
+		this.aBuffer.getChannelData(0).set(this.buffer);
+		this.audioOut = this.audioCtx.createBufferSource();
+		this.audioOut.buffer=this.aBuffer;
+		this.audioOut.connect(this.audioCtx.destination);
+		//this.audioOut.noteOn(0);
+		this.audioOut.start(0);
+		this.audioOut.loop = true;
+
+		audioConnected=true;
+	}
+	
+	//initializer
+	this.renderAudio = renderChromeAudio;//TODO
+	function inita()
+	{
+		if(p.useFFAudio) return renderMozillaAudio;
+		else if(p.useChromeAudio) return renderChromeAudio;
+	};
+	
+	this.delayAudio = function(a)
+	{
+		if(this.useFFAudio) for(var b=0; b<a; b++) this.audioOut.mozWriteAudio(this.buffer);
+	}
+}
+var bEnableCanvasRenderer=false;
+var bRenderWebgl=true;
+var bRenderCanvas=false;
+
+var p = new Parser(false,false);
+var oldloop = new Date;
+var cc;
+var c;
+	cc = document.getElementById("ibniz");
+if(bEnableCanvasRenderer){
+	c = cc.getContext("2d");
+	var idd = c.createImageData(256,256);
+
+}else{
+	cc.style.display="none";
+	document.getElementById("rendererSwitches").style.display="none";
+	document.getElementById("advancedOptions").style.display="none";
+}
+var codeEdit = document.getElementById("code");
+var fpsField = document.getElementById("fps");
+var pause = document.getElementById("pause");
+var simpleGetPut = document.getElementById("simpleGetPut");
+var useAudio = document.getElementById("useAudio");
+var recalcAudio = document.getElementById("recalcAudio");
+var exampleApps = document.getElementById("example_apps");
+var exampleAppID = -1;
+/*
+var halfRes = document.getElementById("halfRes");
+var cc2 = document.createElement("canvas");
+cc2.width = 256;
+cc2.height = 256;
+var c2 = cc2.getContext("2d");
+*/
+var renderCanvasCheckbox = document.getElementById("renderCanvas");
+var renderWebglCheckbox = document.getElementById("renderWebgl");
+
+var runningCode = " ";
+var _get = getUrlVars();
+var code = _get['c'];
+if(code){//code in url parameter
+	code = decodeURIComponent(code);
+	runningCode = code;
+	codeEdit.value = runningCode;
+	console.log(codeEdit.value);
+}
+p.load(runningCode);
+p.t=0;
+
+
+function derp()
+{
+	if(!pause.checked)
+	{
+		bRenderCanvas = renderCanvasCheckbox.checked;
+		bRenderWebgl = renderWebglCheckbox.checked;
+		
+		p.audioProgProcessed=false;
+
+		if(bRenderCanvas)p.render(c);
+		if(bRenderWebgl)p.renderWebgl(c);
+		if(p.useAudio)p.renderAudio();else 	p.audioOut.loop = false;
+		
+		var newloop = new Date;
+		var fps = 1000 / (newloop - oldloop);
+		oldloop=newloop;
+		p.t+=60/fps;
+		p.delayAudio(Math.round(60/fps));
+		p.configureStackmode();
+		p.config(simpleGetPut.checked,useAudio.checked,recalcAudio.checked);
+		//fpsField.childNodes[1].nodeValue=fps.toFixed(2) + " (about " + (fps*65536*p.parsedCode.length).toFixed(0) + " cycles)";
+		fpsField.childNodes[1].nodeValue=fps.toFixed(1);
+		if(exampleApps.selectedIndex!=exampleAppID)
+		{
+			exampleAppID=exampleApps.selectedIndex;
+			if(exampleApps.selectedIndex>0){//change code only while choosing non empty example
+				codeEdit.value = exampleApps.options[exampleAppID].value;
+			}
+		}
+		if(runningCode!=codeEdit.value)
+		{
+			p.t=0;
+			runningCode=codeEdit.value;
+			p.load(runningCode);
+		}
+	}
+	
+	
+	//setTimeout("requestAnimFrame(derp)",1); // give the browser time to not lag the whole computer
+	//setTimeout(function(){requestAnimFrame(derp)},1);
+	requestAnimFrame(derp);
+}
+function loadFileURL()
+{
+	var url = prompt("Please input an URL","");
+	var http = createRequestObject();
+	function createRequestObject() { // http://www.openhosting.co.uk/articles/webdev/5899/
+		var objAjax;
+		var browser = navigator.appName;
+		if(browser == "Microsoft Internet Explorer"){
+			objAjax = new ActiveXObject("Microsoft.XMLHTTP");
+		}else{
+			objAjax = new XMLHttpRequest();
+		}
+		return objAjax;
+	}
+	function updateFileURL() {
+		if(http.readyState == 4)
+			codeEdit.value=http.responseText;
+	}
+	http.open('get',url);
+	http.onreadystatechange = updateFileURL;
+	http.send(null);
+}
+
+function toggleFullScreen() {
+  if (!document.fullscreenElement &&    // alternative standard method
+      !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement ) {  // current working methods
+    if (document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen();
+    } else if (document.documentElement.msRequestFullscreen) {
+      document.documentElement.msRequestFullscreen();
+    } else if (document.documentElement.mozRequestFullScreen) {
+      document.documentElement.mozRequestFullScreen();
+    } else if (document.documentElement.webkitRequestFullscreen) {
+      document.documentElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+    }else return;
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.msExitFullscreen) {
+      document.msExitFullscreen();
+    } else if (document.mozCancelFullScreen) {
+      document.mozCancelFullScreen();
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    }else return;
+  }
+}
+
+function getUrlVars() {
+	var vars = {};
+	var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+	vars[key] = value;
+	});
+	return vars;
+}
+
+
+//document.addEventListener("keydown", function(e) {
+//  if (e.keyCode == 70 /*"f".charCodeAt(0)*/) {
+//    toggleFullScreen();
+//  }
+//}, false);
+
+
+
+
+document.getElementById("fullscreenToggle").addEventListener("click", toggleFullScreen);
+
+var wpb;
+function init(){
+	if(bRenderWebgl){
+		wpb = new WebglPixelBuff();
+		wpb.init("ibnizwebgl");
+	}
+	derp();
+}
+
+//document.addEventListener('DOMContentLoaded', init);
+
+
+</script>
+</body>
+</html>
