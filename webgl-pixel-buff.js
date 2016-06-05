@@ -93,16 +93,6 @@ window.WebglPixelBuff = function(){
 			"   texCoord = g_TexCoord0;",
 			"}"
 		].join("\n");
-		var fShaderStr = [
-			"precision mediump float;\n",
-			"uniform sampler2D tex;",
-			"varying vec2 texCoord;",
-			"void main()",
-			"{",
-			"  gl_FragColor = texture2D(tex, texCoord);",
-			//"gl_FragColor = vec4(texCoord, 0, 1);",
-			"}"
-		].join("\n");
 		
 		var fShaderStr2 = [
 		  'precision mediump float;',

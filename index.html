@@ -31,6 +31,30 @@ html:fullscreen canvas#ibnizwebgl
   width: 100vmin;
   height: 100vmin;
 }
+
+body{
+	background-color:black;
+	color:#DDDDDD;
+}
+a {
+	color:#d0d0FF;
+}
+form#settings{
+	float:right;
+}
+
+textarea#code{
+	background-color:#000015;
+    color: white;
+    font-weight: bold;
+    font-family: Monotype;
+}
+
+select#example_apps {
+	background-color:#000015;
+	color:#dddddd;
+	width: 110px;
+}
 </style>
 </head>
 <body onload="init()">
@@ -39,8 +63,8 @@ Why u no canvas
 </canvas>
 <canvas id="ibnizwebgl" width="256" height="256">
 Why u no canvas
-</canvas><br>
-<form>
+</canvas>
+<form id="settings">
 	
 	<input type="checkbox" id="pause">Pause <input type="checkbox" id="useAudio">Audio 
 	<input type="button" id="fullscreenToggle" value="Fullscreen"><span id="fps"><b>FPS:</b> [loading...]</span><br>
@@ -72,12 +96,12 @@ Why u no canvas
 		<input type="checkbox" id="recalcAudio" checked="checked">More accurate audio (slightly slower)<br>
 		<input type="checkbox" id="simpleGetPut" checked="checked">Simple memory access
 	</div>
-	<div id="title"><b>IBNIZ-js webgl 0.C</b> by uone (	<a href="http://pelulamu.net/ibniz/">What is it?</a>
+	<div id="title"><a href="https://github.com/uones/ibnjs" target="_blank"><b>IBNIZ-js webgl 0.C</b></a> by uones (	<a href="IBNIZ-tutorial.txt" target="_blank">What is it?</a>
 )</div>
 	<div id="credits">
-	Fork of <a href="https://github.com/asiekierka/ibnjs">ibnjs</a>
-	by <a href="mailto:asiekierka@gmail.com">asiekierka</a>.
-	Original <a href="https://github.com/viznut/IBNIZ">IBNIZ</a> idea by Viznut.
+	Fork of <a href="https://github.com/asiekierka/ibnjs" target="_blank">ibnjs</a>
+	by <a href="mailto:asiekierka@gmail.com" target="_blank">asiekierka</a>.
+	Original <a href="https://github.com/viznut/IBNIZ" target="_blank">IBNIZ</a> idea by Viznut.
 	</div>
 
 </form>
@@ -1343,28 +1367,6 @@ function Parser(simpleGetPut,useAudio)
 		}
 
 		
-	this.exec_0 = function(x,y)
-	{
-		var fr;
-		//var br=false;
-		var pcl=this.parsedCode.length;
-		var ip=this.ip;
-		while(ip>=0 && ip<pcl){
-			fr = this.evals[ip](this,x,y);
-			if(fr !== void 0){
-			console.log('fr from evals',fr,this.ip);
-				this.ip = fr+1; //TODO check +1
-				//br=true;
-				//break;
-				return;
-			}
-			this.ip++;
-			ip=this.ip;
-		}
-		//if(!br)
-		this.ip=(-15498+1);//TODO check +1
-	}
-
 	this.exec = function(x,y)
 	{
 		var fr;
@@ -1376,6 +1378,7 @@ function Parser(simpleGetPut,useAudio)
 			}else{
 				this.ip = fr+1;
 				//if(this.ip<0 || this.ip>=pcl)return;//TODO is it good exit? omitting ip setting at the end
+				if(this.ip<=0)return;//empty V caused infinite loop
 			}
 		}
 		this.ip=(-15498+1);//TODO check +1
@@ -1581,6 +1584,7 @@ var bRenderCanvas=false;
 
 var p = new Parser(false,false);
 var oldloop = new Date;
+var lastFpsLoop = oldloop;
 var cc;
 var c;
 	cc = document.getElementById("ibniz");
@@ -1645,7 +1649,10 @@ function derp()
 		p.configureStackmode();
 		p.config(simpleGetPut.checked,useAudio.checked,recalcAudio.checked);
 		//fpsField.childNodes[1].nodeValue=fps.toFixed(2) + " (about " + (fps*65536*p.parsedCode.length).toFixed(0) + " cycles)";
-		fpsField.childNodes[1].nodeValue=fps.toFixed(1);
+		if(newloop-lastFpsLoop>=500){
+			fpsField.childNodes[1].nodeValue=fps.toFixed(1);
+			lastFpsLoop=newloop;
+		}
 		if(exampleApps.selectedIndex!=exampleAppID)
 		{
 			exampleAppID=exampleApps.selectedIndex;
