@@ -23,6 +23,7 @@ https://uones.github.io/ibnjs/index.html
 
 To automatically start your IBNIZ program from link,  pass it URL encoded in c parameter, like:
 http://cdn.rawgit.com/uones/ibnjs/master/index.html?c=wor
+https://uones.github.io/ibnjs/index.html
 
 Compatibility:
 Mozilla (Windows 7)
