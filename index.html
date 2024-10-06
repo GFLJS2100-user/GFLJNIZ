@@ -1621,33 +1621,17 @@ var c2 = cc2.getContext("2d");
 var renderCanvasCheckbox = document.getElementById("renderCanvas");
 var renderWebglCheckbox = document.getElementById("renderWebgl");
 
-var runningCode = ""; // Variable to store the code
-var codeEdit = document.getElementById("codeEdit"); // Assuming you have a code editor with id "codeEdit"
-var p = new p5(); // Assuming "p" is a p5.js instance
-
-// Function to get URL parameters
-function getUrlVars() {
-  var vars = {};
-  var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
-    vars[key] = value;
-  });
-  return vars;
-}
-
-// Retrieve code from URL parameter
+var runningCode = "";
 var _get = getUrlVars();
 var code = _get['c'];
-
-if (code) { // Check if code parameter exists
-  code = decodeURIComponent(code); // Decode the URL-encoded parameter
-  runningCode = atob(code); // Decode the base64 encoded code
-  codeEdit.value = runningCode; // Set the code editor's content
-  console.log(codeEdit.value);
+if(code){//code in url parameter
+	code = decodeURIComponent(code);
+	runningCode = code;
+	codeEdit.value = runningCode;
+	console.log(codeEdit.value);
 }
-
-// Load and execute the code (assuming 'p' is a p5.js instance)
 p.load(runningCode);
-p.t = 0;
+p.t=0;
 
 
 function derp()
