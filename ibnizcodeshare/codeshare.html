@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>IBNIZ Code Share</title>
+</head>
+<body>
+
+
+  <textarea id="code" style="width: 256px" cols="80" rows="10" placeholder="Put your IBNIZ code in!"></textarea><br>
+  <input type="text" id="encoded-code" placeholder="Encoded IBNIZ code" style="width: 256px;">
+  <button id="decodeButton">Decode</button>
+  <button id="encodeButton">Encode</button>
+
+  <script>
+    function encodeCode() {
+      let code = document.getElementById("code").value;
+      let encodedCode = btoa(code); // Base64 encode
+      document.getElementById("encoded-code").value = encodedCode; // No need for data URI
+    }
+
+    function decodeCode() {
+      let encodedCode = document.getElementById("encoded-code").value;
+      let code = atob(encodedCode); // Decode from base64
+      document.getElementById("code").value = code;
+    }
+
+    // Get the buttons by their IDs
+    const decodeButton = document.getElementById("decodeButton");
+    const encodeButton = document.getElementById("encodeButton");
+
+    // Add event listeners for click events
+    decodeButton.addEventListener("click", decodeCode);
+    encodeButton.addEventListener("click", encodeCode);
+  </script>
+
+</body>
+</html>
