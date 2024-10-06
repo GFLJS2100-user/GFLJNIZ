@@ -19,10 +19,10 @@ Usage:
 Open index.html from local files in compatible WebGL browser
 
 You can also open it directly from github:
-https://uones.github.io/ibnjs/index.html
+https://gfljs2100-user.github.io/GFLJNIZ/index.html
 
 To automatically start your IBNIZ program from link,  pass it URL encoded in c parameter, like:
-https://uones.github.io/ibnjs/index.html?c=wor
+https://gfljs2100-user.github.io/GFLJNIZ/index.html?c=d29y
 
 Compatibility:
 Mozilla (Windows 7)
@@ -47,6 +47,7 @@ List of more important changes:
 - URL c parameter for passing IBNIZ code in URLs.
 
 Check also:
+https://github.com/uones/ibnjs
 https://github.com/asiekierka/ibnjs
 https://github.com/viznut/IBNIZ
 http://pelulamu.net/ibniz/
