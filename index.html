@@ -1627,7 +1627,7 @@ var code = _get['c'];
 if(code){//code in url parameter
 	code = decodeURIComponent(code);
 	runningCode = code;
-	codeEdit.value = runningCode;
+	codeEdit.value = btoa(runningCode); // Encode to base64
 	console.log(codeEdit.value);
 }
 p.load(runningCode);
