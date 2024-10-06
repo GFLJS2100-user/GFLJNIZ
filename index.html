@@ -1622,32 +1622,18 @@ var renderCanvasCheckbox = document.getElementById("renderCanvas");
 var renderWebglCheckbox = document.getElementById("renderWebgl");
 
 var runningCode = "";
-// Function to extract URL query parameters
-function getUrlVars() {
-  var vars = {};
-  var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
-    vars[key] = value;
-  });
-  return vars;
-}
-
-// Get the code from the URL parameter 'c'
 var _get = getUrlVars();
 var code = _get['c'];
 
-// If the code exists, decode it
 if (code) {
   // Decode URL-encoded components
   code = decodeURIComponent(code);
 
-  // Decode from base64
   runningCode = atob(code);
 
-  // Assuming you have a textarea with id 'codeEdit'
   var codeEdit = document.getElementById('codeEdit');
   codeEdit.value = runningCode;
 
-  // Log to console for debugging
   console.log(codeEdit.value);
 }
 p.load(runningCode);
