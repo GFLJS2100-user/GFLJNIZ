@@ -99,6 +99,7 @@ Why u no canvas
 		<input type="checkbox" id="recalcAudio" checked="checked">More accurate audio (slightly slower)<br>
 		<input type="checkbox" id="simpleGetPut" checked="checked">Simple memory access
 	</div>
+	
 	<div id="title"><a href="https://github.com/gfljs2100-user/GFLJNIZ" target="_blank"><b>IBNIZ-js webgl 0.C</b></a> by GFLJS2100-user (	<a href="IBNIZ-tutorial.txt" target="_blank">What is it?</a>
 )</div>
 	<div id="credits">
@@ -109,7 +110,11 @@ Why u no canvas
 	<div id="sharing-ibniz-codes">
 	To copy IBNIZ codes, go to this link here <a href="ibnizcodeshare/codeshare.html" target="_blank">for sharing and decoding other people's IBNIZ translated to base64</a>.
 	</div>
-
+	<button id="shareButton">Share Code</button>
+	<script>
+	function encodeCode(code) {
+  return btoa(code);
+} </script>
 </form>
 <div id="dybug"></div>
 
