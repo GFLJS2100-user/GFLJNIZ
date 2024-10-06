@@ -1621,15 +1621,14 @@ var c2 = cc2.getContext("2d");
 var renderCanvasCheckbox = document.getElementById("renderCanvas");
 var renderWebglCheckbox = document.getElementById("renderWebgl");
 
-var runningCode = " ";
-var codeEdit = document.getElementById("codeEdit"); // Assuming codeEdit is your textarea element
+var runningCode = "";
 var _get = getUrlVars();
 var code = _get['c'];
-if (code) { // code in URL parameter
-  code = decodeURIComponent(code); // Decode URL-encoded string
-  runningCode = atob(code); // Decode Base64-encoded string
-  codeEdit.value = runningCode; // Set the decoded value to the textarea
-  console.log(codeEdit.value); // Log the decoded value
+if(code){//code in url parameter
+	code = decodeURIComponent(code);
+	runningCode = code;
+	codeEdit.value = runningCode;
+	console.log(codeEdit.value);
 }
 p.load(runningCode);
 p.t=0;
