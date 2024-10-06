@@ -112,9 +112,24 @@ Why u no canvas
 	</div>
 	<button id="shareButton">Share Code</button>
 	<script>
-	function encodeCode(code) {
+	// Function to extract URL query parameters
+function getUrlVars() {
+  var vars = {};
+  var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+    vars[key] = value;
+  });
+  return vars;
+}
+// Function to base64 encode IBNIZ code
+function encodeCode(code) {
   return btoa(code);
-} </script>
+}
+// Function to generate shareable link
+function generateShareLink(code) {
+  var encodedCode = encodeCode(code);
+  var shareLink = window.location.origin + "?c=" + encodedCode; 
+  return shareLink;
+}</script>
 </form>
 <div id="dybug"></div>
 
