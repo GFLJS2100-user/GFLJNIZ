@@ -1624,17 +1624,11 @@ var renderWebglCheckbox = document.getElementById("renderWebgl");
 var runningCode = "";
 var _get = getUrlVars();
 var code = _get['c'];
-
-if (code) {
-  // Decode URL-encoded components
-  code = decodeURIComponent(code);
-
-  runningCode = atob(code);
-
-  var codeEdit = document.getElementById('codeEdit');
-  codeEdit.value = runningCode;
-
-  console.log(codeEdit.value);
+if(code){//code in url parameter
+	code = decodeURIComponent(code);
+	runningCode = code;
+	codeEdit.value = atob(runningCode); // Encode to base64
+	console.log(codeEdit.value);
 }
 p.load(runningCode);
 p.t=0;
