@@ -9,52 +9,53 @@
 <script type="text/javascript" src="webgl-utils.js"></script>
 <script type="text/javascript" src="webgl-pixel-buff.js"></script>
 <style>
-/*
-mixed prefixed full-screen selectors dont work on Mozilla
-*/
+	/*
+	mixed prefixed full-screen selectors dont work on Mozilla
+	*/
 
-html:-webkit-full-screen canvas#ibnizwebgl
-{
-  width: 100vmin;
-  height: 100vmin;
-}
+	html:-webkit-full-screen canvas#ibnizwebgl
+	{
+		width: 100vmin;
+		height: 100vmin;
+	}
 
-html:-moz-full-screen canvas#ibnizwebgl
-{
-  width: 100vmin;
-  height: 100vmin;
-}
+	html:-moz-full-screen canvas#ibnizwebgl
+	{
+		width: 100vmin;
+		height: 100vmin;
+	}
 
-html:-ms-fullscreen canvas#ibnizwebgl,
-html:fullscreen canvas#ibnizwebgl
-{
-  width: 100vmin;
-  height: 100vmin;
-}
+	html:-ms-fullscreen canvas#ibnizwebgl,
+	html:fullscreen canvas#ibnizwebgl
+	{
+		width: 100vmin;
+		height: 100vmin;
+	}
 
-body{
-	background-color:black;
-	color:#DDDDDD;
-}
-a {
-	color:#d0d0FF;
-}
-form#settings{
-	float:right;
-}
+	body{
+		background-color: #222; /* Dark Gray Background */
+		color: #eee; /* Light Gray Text */
+		font-family: 'Arial', sans-serif; /* Arial Font */
+	}
+	a {
+		color:#d0d0FF;
+	}
+	form#settings{
+		float:right;
+	}
 
-textarea#code{
-	background-color:#000015;
-    color: white;
-    font-weight: bold;
-    font-family: Monotype;
-}
+	textarea#code {
+	  background-color: #000015;
+	  color: white;
+	  font-weight: bold;
+	  font-family: 'Fira Code', monospace; /* Use 'Fira Code' if available, otherwise use a monospace font */
+	}
 
-select#example_apps {
-	background-color:#000015;
-	color:#dddddd;
-	width: 110px;
-}
+	select#example_apps {
+		background-color:#000015;
+		color:#dddddd;
+		width: 110px;
+	}
 </style>
 </head>
 <body onload="init()">
@@ -69,7 +70,7 @@ Why u no canvas
 	<input type="checkbox" id="pause">Pause <input type="checkbox" id="useAudio">Audio 
 	<input type="button" id="fullscreenToggle" value="Fullscreen"><span id="fps"><b>FPS:</b> [loading...]</span><br>
 
-	<textarea id="code" style="width: 256px" cols="80" rows="10" placeholder="IBNIZ code editor"></textarea><br>
+	<textarea id="code" style="width: 256px" cols="80" rows="10" placeholder="IBNIZ code editor"></textarea><br>	
 	<select id="example_apps">
 			<option value=""><b>Load example:</b></option>
 			<option value="^x7r+Md8r&">Munching squares</option>
@@ -88,6 +89,7 @@ Why u no canvas
 			<option value="w8r-sqwqd*&w1~&+">asiekierka - glass</option>
 			<option value="6{^^ddd***1%}5{v8rsdv*vv*^wpp8r-}4{v8rdsx.6+s4X3)Lx~2Xv*vv*+i!L1@2@^}3{ax8r+3lwd*xd*+q1x/x6r+^}2)6r3&3+V55A9^Md6r|5*wdAr&+">viznut - ibnizdemo.ib</option>
 			<option value="axCr3ls3r+43lwd*xd*+q1x/x7r+^1%w^x20r8l+^M3*w5r&w5*w9r&w2*w6r&||">FreeFull - christmas demo</option>
+			<option value="d4rrd*d8r&">GFLJS2100-user - a crazy static and ibniz</option>
 	</select>
 	<div id="advancedOptions">
 		<div id="rendererSwitches">
@@ -96,12 +98,15 @@ Why u no canvas
 		<input type="checkbox" id="recalcAudio" checked="checked">More accurate audio (slightly slower)<br>
 		<input type="checkbox" id="simpleGetPut" checked="checked">Simple memory access
 	</div>
-	<div id="title"><a href="https://github.com/uones/ibnjs" target="_blank"><b>IBNIZ-js webgl 0.C</b></a> by uones (	<a href="IBNIZ-tutorial.txt" target="_blank">What is it?</a>
+	<div id="title"><a href="https://github.com/gfljs2100-user/ibnjs" target="_blank"><b>IBNIZ-js webgl 0.C</b></a> by GFLJS2100-user (	<a href="IBNIZ-tutorial.txt" target="_blank">What is it?</a>
 )</div>
 	<div id="credits">
-	Fork of <a href="https://github.com/asiekierka/ibnjs" target="_blank">ibnjs</a>
-	by <a href="mailto:asiekierka@gmail.com" target="_blank">asiekierka</a>.
+	Fork of <a href="https://github.com/uones/ibnjs" target="_blank">ibnjs</a>
+	by <a href="https://github.com/uones" target="_blank">uones</a>.
 	Original <a href="https://github.com/viznut/IBNIZ" target="_blank">IBNIZ</a> idea by Viznut.
+	</div>
+	<div id="sharing-ibniz-codes">
+	To copy IBNIZ codes, go to this link here <a href="https://gfljs2100-user.github.io/ibnjs/ibnizcodeshare/codeshare.html" target="_blank">for sharing and decoding other people's IBNIZ translated to base64</a>.
 	</div>
 
 </form>
