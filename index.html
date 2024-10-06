@@ -1622,6 +1622,15 @@ var renderCanvasCheckbox = document.getElementById("renderCanvas");
 var renderWebglCheckbox = document.getElementById("renderWebgl");
 
 var runningCode = "";
+// Function to extract URL query parameters
+function getUrlVars() {
+  var vars = {};
+  var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+    vars[key] = value;
+  });
+  return vars;
+}
+
 var _get = getUrlVars();
 var code = _get['c'];
 if(code){//code in url parameter
