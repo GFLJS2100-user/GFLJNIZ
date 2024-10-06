@@ -1631,13 +1631,24 @@ function getUrlVars() {
   return vars;
 }
 
+// Get the code from the URL parameter 'c'
 var _get = getUrlVars();
 var code = _get['c'];
-if(code){//code in url parameter
-	code = decodeURIComponent(code);
-	runningCode = code;
-	codeEdit.value = atob(runningCode); // Encode to base64
-	console.log(codeEdit.value);
+
+// If the code exists, decode it
+if (code) {
+  // Decode URL-encoded components
+  code = decodeURIComponent(code);
+
+  // Decode from base64
+  runningCode = atob(code);
+
+  // Assuming you have a textarea with id 'codeEdit'
+  var codeEdit = document.getElementById('codeEdit');
+  codeEdit.value = runningCode;
+
+  // Log to console for debugging
+  console.log(codeEdit.value);
 }
 p.load(runningCode);
 p.t=0;
