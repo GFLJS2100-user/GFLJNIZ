@@ -9,6 +9,14 @@
 <link rel="canonical" href="https://gfljs2100-user.github.io/GFLJNIZ/" />
 <script type="text/javascript" src="webgl-utils.js"></script>
 <script type="text/javascript" src="webgl-pixel-buff.js"></script>
+<script>
+  // register ServiceWorker, remember to use absolute path!
+  if (navigator.serviceWorker) {
+    navigator.serviceWorker.register('/GFLJNIZ/sw.js', {scope: '/GFLJNIZ/'})
+  }
+  
+  // --- Application code here ---
+  </script>
 <style>
 	/*
 	mixed prefixed full-screen selectors dont work on Mozilla
