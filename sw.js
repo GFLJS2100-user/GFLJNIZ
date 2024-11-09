@@ -5,7 +5,8 @@ var URLS = [
   '/GFLJNIZ/',
   '/GFLJNIZ/index.html',
   '/GFLJNIZ/webgl-pixel-buff.js',
-  '/GFLJNIZ/webgl-utils.js'
+  '/GFLJNIZ/webgl-utils.js',
+  '/GFLJNIZ/sw.js'
 ]
 
 // Respond with cached resources
